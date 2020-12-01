@@ -13,12 +13,11 @@ solve = do
     putStr "Part 2: "
     print $ findN $ subsets 3 parsed
 
-findN :: (Num a, Eq a) => [[a]] -> Maybe a
-findN xs = maybeMult $ head $ filter sumEquals2020 xs
+findN :: (Num a, Eq a) => [[a]] -> a
+findN xs = multList $ head $ filter sumEquals2020 xs
   where
       sumEquals2020 xs = foldl (+) 0 xs == 2020
-      maybeMult [] = Nothing
-      maybeMult xs = Just $ foldl (*) 1 xs
+      multList xs = foldl (*) 1 xs
 
 subsets :: Int -> [a] -> [[a]]
 subsets 0 _ = [[]]
