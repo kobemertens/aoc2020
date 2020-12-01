@@ -24,5 +24,5 @@ subsets 0 _ = [[]]
 subsets _ [] = []
 subsets n (x : xs) = map (x :) (subsets (n - 1) xs) ++ subsets n xs
 
-
+parseInput :: IO [String]
 parseInput = lines <$> readFile "data/day01.txt"
