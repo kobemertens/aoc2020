@@ -26,7 +26,6 @@ source-repository head
 library
   exposed-modules:
       Day01
-      Lib
   other-modules:
       Paths_aoc2020
   hs-source-dirs:
