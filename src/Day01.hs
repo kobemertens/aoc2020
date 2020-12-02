@@ -16,8 +16,8 @@ solve = do
 findN :: (Num a, Eq a) => [[a]] -> a
 findN xs = multList $ head $ filter sumEquals2020 xs
   where
-      sumEquals2020 xs = foldl (+) 0 xs == 2020
-      multList xs = foldl (*) 1 xs
+      sumEquals2020 xs = sum xs == 2020
+      multList xs = product xs
 
 subsets :: Int -> [a] -> [[a]]
 subsets 0 _ = [[]]
