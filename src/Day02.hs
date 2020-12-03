@@ -22,7 +22,7 @@ checkEntry :: Entry -> Bool
 checkEntry Entry {policy=p, char=c, password=pw} = uncurry (inRange (countElem c pw)) p
 
 checkEntry' :: Entry -> Bool
-checkEntry' Entry {policy=p, char=c, password=pw} = checkPos (fst p) c pw `xor` checkPos (snd p) c pw
+checkEntry' Entry {policy=p, char=c, password=pw} = checkPos (fst p) c pw /= checkPos (snd p) c pw
   where
       checkPos :: (Eq a) => Int -> a -> [a] -> Bool
       checkPos i x xs = (xs !! (i-1)) == x
@@ -38,9 +38,6 @@ parseLines = map (parseLine . words)
 
 parseLine :: [String] -> Entry
 parseLine [p, c, pw] = Entry { policy=read p, char=head c, password=pw }
-
-xor :: Bool -> Bool -> Bool
-xor a b = (a || b) && not (a && b)
 
 getLines :: IO [String]
 getLines = lines <$> readFile "data/day02.txt"
