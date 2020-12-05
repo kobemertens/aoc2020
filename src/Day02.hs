@@ -1,5 +1,6 @@
 module Day02
     ( solve
+    , inRange
     ) where
 
 data Entry = Entry { policy :: (Int, Int)

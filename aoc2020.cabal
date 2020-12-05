@@ -28,12 +28,14 @@ library
       Day01
       Day02
       Day03
+      Day04
   other-modules:
       Paths_aoc2020
   hs-source-dirs:
       src
   build-depends:
       base >=4.7 && <5
+    , split
   default-language: Haskell2010
 
 executable aoc2020-exe
@@ -46,6 +48,7 @@ executable aoc2020-exe
   build-depends:
       aoc2020
     , base >=4.7 && <5
+    , split
   default-language: Haskell2010
 
 test-suite aoc2020-test
@@ -59,4 +62,5 @@ test-suite aoc2020-test
   build-depends:
       aoc2020
     , base >=4.7 && <5
+    , split
   default-language: Haskell2010
