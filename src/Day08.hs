@@ -3,7 +3,7 @@ module Day08
     ) where
 
 import Data.Set(Set, insert, member, empty)
-import Data.Either ( fromLeft, fromRight )
+import Data.Either ( fromLeft, fromRight, isLeft )
 
 data Instruction
     = Jmp Int
@@ -34,14 +34,10 @@ part1 =  fromRight 0 . runProgram
 
 part2 :: Program -> Program -> Int
 part2 b (x:xs)
-    | hasFinished result = fromLeft 0 result
+    | isLeft result = fromLeft 0 result
     | otherwise = part2 (b ++ [x]) xs
   where
-      result = runProgram (swapInstruction x:xs)
-
-hasFinished :: Either Int Int -> Bool
-hasFinished (Left _) = True
-hasFinished (Right _) = False
+      result = runProgram (b ++ swapInstruction x:xs)
 
 runProgram :: Program -> Either Int Int
 runProgram program = runProgram' (State 0 0) program empty
