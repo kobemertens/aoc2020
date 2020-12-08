@@ -2,67 +2,74 @@ module Day08
     ( solve
     ) where
 
-import qualified Data.Set as Set
-import Debug.Trace
-import Data.List
-import Data.Maybe
+import Data.Set(Set, insert, member, empty)
+import Data.Either ( fromLeft, fromRight )
 
 data Instruction
-    = Instruction String Int
+    = Jmp Int
+    | Acc Int
+    | Nop Int
     deriving (Show)
 
-data Interpreter = Interpreter Int Int
+data State = State Int Int
+
+type Program = [Instruction]
 
 solve :: IO ()
 solve = do
     lines <- lines <$> readFile "data/day08.txt"
-    let program = zipWith parseLine (rangeFrom 0) lines
-    print $ findFirstLoop (Interpreter 0 0) program Set.empty
-    let programs = replaceOp "nop" "jmp" program ++ replaceOp "jmp" "nop" program
-    let result = findLeft $ map (\program -> findFirstLoop (Interpreter 0 0) program Set.empty) programs
-    print result
+    let program = map parseLine lines
+    putStr "Part 1: "
+    print $ part1 program
+    putStr "Part 2: "
+    print $ part2 [] program
 
-findLeft :: [Either a a] -> a
-findLeft x = head $ mapMaybe leftToMaybe x
+swapInstruction :: Instruction -> Instruction
+swapInstruction (Jmp a) = Nop a
+swapInstruction (Nop a) = Jmp a
+swapInstruction x = x
+
+part1 :: Program -> Int
+part1 =  fromRight 0 . runProgram
+
+part2 :: Program -> Program -> Int
+part2 b (x:xs)
+    | hasFinished result = fromLeft 0 result
+    | otherwise = part2 (b ++ [x]) xs
   where
-    leftToMaybe (Left a) = Just a
-    leftToMaybe (Right _) = Nothing
+      result = runProgram (swapInstruction x:xs)
 
-replaceOp :: String -> String -> [Instruction] -> [[Instruction]]
-replaceOp old new program = map (replaceOpAtIndex new program) $ findIndices (\(Instruction instr _) -> instr == old) program
+hasFinished :: Either Int Int -> Bool
+hasFinished (Left _) = True
+hasFinished (Right _) = False
 
-replaceOpAtIndex :: String ->  [Instruction] -> Int -> [Instruction]
-replaceOpAtIndex new program i = take i program ++ (newInstruction operand : drop (i+1) program)
+runProgram :: Program -> Either Int Int
+runProgram program = runProgram' (State 0 0) program empty
+
+runProgram' :: State -> Program -> Set Int -> Either Int Int
+runProgram' s p seen
+    | pc >= length p = Left acc
+    | pc `member` seen = Right acc
+    | otherwise = runProgram' ns p (insert pc seen)
   where
-      (Instruction _ operand) = program!!i
-      newInstruction op = Instruction new op
+      ns@(State pc acc) = programStep p s
 
-findFirstLoop :: Interpreter -> [Instruction] -> Set.Set Int -> Either Int Int
-findFirstLoop interpreter program seen
-    | pc >= length program = Left acc
-    | pc `Set.member` seen = Right acc
-    | otherwise = findFirstLoop (Interpreter pc acc) program (Set.insert pc seen)
-  where
-      (Interpreter pc acc) = runInstruction interpreter program
+runInstruction :: Instruction -> State -> State
+runInstruction (Jmp a) (State pc acc) = State (pc+a) acc
+runInstruction (Acc a) (State pc acc) = State (pc+1) (acc+a)
+runInstruction _ (State pc acc) = State (pc+1) acc
 
-runInstruction :: Interpreter -> [Instruction] -> Interpreter
-runInstruction (Interpreter pc acc) program
-    = Interpreter (newPc pc instruction) (newAcc acc instruction)
-  where
-      instruction = program!!pc
-      newPc pc (Instruction "jmp" op) = pc + op
-      newPc pc _ = pc + 1
-      newAcc acc (Instruction "acc" op) = acc + op
-      newAcc acc _ = acc
+programStep :: Program -> State -> State
+programStep program s@(State pc _) = let instruction = program!!pc in runInstruction instruction s
 
-parseLine :: Int -> String -> Instruction
-parseLine i s = Instruction inst (parseInt op)
+parseLine :: String -> Instruction
+parseLine s
+    | inst == "acc" = Acc $ parseInt op
+    | inst == "jmp" = Jmp $ parseInt op
+    | inst == "nop" = Nop $ parseInt op
   where
     [inst, op] = words s
 
 parseInt :: String -> Int
 parseInt ('+':xs) = read xs
 parseInt x = read x
-
-rangeFrom :: Int -> [Int]
-rangeFrom n = n:rangeFrom (n + 1)
