@@ -28,7 +28,7 @@ part2 g l@(_:xs)
       set = findSet [] l g
 
 findSum :: Int -> [Int] -> Bool
-findSum n [] = False
+findSum _ [] = False
 findSum n (x:xs)
     | (n-x) `elem` xs = True
     | otherwise = findSum n xs
