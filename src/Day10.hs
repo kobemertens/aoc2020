@@ -3,13 +3,11 @@ module Day10
     ) where
 
 import Data.List
-import Debug.Trace
 
 solve :: IO ()
 solve = do
     l <- lines <$> readFile "data/day10.txt"
     let d = 0:map (read :: String -> Int) l
-    print $ sort d
     putStr "Part1: "
     print $ part1 $ sort $ d
     putStr "Part2: "
@@ -19,12 +17,12 @@ part1 :: [Int] -> Int
 part1 xs =  multTuple . countDiffs $ zip xs (tail xs)
 
 -- part2 :: [Int] -> Int
-part2 l = foldl countConfs [(4, 1), (1, 1), (0, 1)] (drop 3 l)
+part2 l = foldl countConfs [(2, 2), (1, 1), (0, 1)] (drop 3 l)
 
 
 -- take int and three last configurations
 countConfs :: [(Int, Int)] -> Int -> [(Int, Int)]
-countConfs hist c = trace (show ((c, sum $ map (checkEl c) hist):init hist)) (c, sum $ map (checkEl c) hist):init hist
+countConfs hist c = (c, sum $ map (checkEl c) hist):init hist
 
 checkEl :: Int -> (Int, Int) -> Int
 checkEl cur (n, c)
