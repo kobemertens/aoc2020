@@ -36,14 +36,16 @@ library
       Day10
       Day11
       Day12
+      Day13
+      NanoParsec
   other-modules:
       Paths_aoc2020
   hs-source-dirs:
       src
   build-depends:
-      base >=4.7 && <5
+      arithmoi
+    , base >=4.7 && <5
     , containers
-    , matrix
     , split
   default-language: Haskell2010
 
@@ -56,9 +58,9 @@ executable aoc2020-exe
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aoc2020
+    , arithmoi
     , base >=4.7 && <5
     , containers
-    , matrix
     , split
   default-language: Haskell2010
 
@@ -72,8 +74,8 @@ test-suite aoc2020-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aoc2020
+    , arithmoi
     , base >=4.7 && <5
     , containers
-    , matrix
     , split
   default-language: Haskell2010

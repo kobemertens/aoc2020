@@ -2,8 +2,6 @@ module Day12
     ( solve
     ) where
 
-import Debug.Trace
-
 data Instruction
     = North Int
     | East Int
@@ -14,6 +12,7 @@ data Instruction
     | RotRight Int
     deriving ( Show )
 
+-- Ferry xpos ypos xwayp ywayp
 data Ferry = Ferry Int Int Int Int
     deriving ( Show )
 
