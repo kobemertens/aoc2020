@@ -8,78 +8,71 @@ import Data.Char
 import Control.Monad
 import Control.Applicative
 
-newtype Parser a = Parser { parse :: String -> [(a,String)] }
+newtype Parser a = Parser { parse :: String -> Maybe (a,String) }
 
 runParser :: Parser a -> String -> a
 runParser m s =
     case parse m s of
-        [(res, [])] -> res
-        [(_, rs)]   -> error "Parser did not consume entire stream."
-        _           -> error "Parser error."
+        Just (res, []) -> res
+        Just (_, rs)   -> error $ "Parser did not consume entire stream." ++ rs
+        Nothing           -> error "Parser error."
 
 item :: Parser Char
 item = Parser $ \s ->
     case s of
-        [] -> []
-        (c:cs) -> [(c,cs)]
+        [] -> Nothing
+        (c:cs) -> Just (c,cs)
 
 bind :: Parser a -> (a -> Parser b) -> Parser b
-bind p f = Parser $ \s -> concatMap (\(a, s') -> parse (f a) s') $ parse p s
+bind p f = Parser $ \s ->
+    case parse p s of
+        (Just (res, rem)) -> parse (f res) rem
+        Nothing -> Nothing
 
 unit :: a -> Parser a
-unit a = Parser $ \s -> [(a, s)]
+unit a = Parser $ \s -> Just (a, s)
 
 instance Functor Parser where
     -- return new parser that applies the function
     -- to every item in the original parser
-    fmap f (Parser cs) = Parser (\s -> [(f a, b) | (a, b) <- cs s])
+    fmap f (Parser cs) = Parser $ \s ->
+        case cs s of
+            (Just (a, b)) -> Just (f a, b)
+            Nothing -> Nothing
 
 instance Applicative Parser where
     pure = return
-    (Parser cs1) <*> (Parser cs2) = Parser (\s -> [(f a, s2)| (f, s1) <- cs1 s, (a, s2) <- cs2 s1])
+    (Parser cs1) <*> (Parser cs2) = Parser $ \s ->
+        case cs1 s of
+            Nothing -> Nothing
+            (Just (f, s1)) ->
+                case cs2 s1 of
+                    (Just (a, s2)) -> Just (f a, s2)
+                    Nothing -> Nothing
+
 
 instance Monad Parser where
     return = unit
     (>>=)  = bind
 
-instance MonadPlus Parser where
-    mzero = failure
-    mplus = combine
-
 instance Alternative Parser where
-    empty = mzero
+    empty = Parser (const Nothing)
     (<|>) = option
-
-combine :: Parser a -> Parser a -> Parser a
-combine p q = Parser (\s -> parse p s ++ parse q s)
-
-failure :: Parser a
-failure = Parser (\cs -> [])
 
 option :: Parser a -> Parser a -> Parser a
 option p q = Parser $ \s ->
     case parse p s of
-        []  -> parse q s
+        Nothing -> parse q s
         res -> res
 
 satisfy :: (Char -> Bool) -> Parser Char
 satisfy p = item >>= \c ->
     if p c
-    then unit c
-    else (Parser (\cs -> []))
+    then return c
+    else empty
 
 oneOf :: [Char] -> Parser Char
-oneOf s = satisfy (flip elem s)
-
-chainl :: Parser a -> Parser (a -> a -> a) -> a -> Parser a
-chainl p op a = (p `chainl1` op) <|> return a
-
-chainl1 :: Parser a -> Parser (a -> a -> a) -> Parser a
-p `chainl1` op = do {a <- p; rest a}
-  where rest a = (do f <- op
-                     b <- p
-                     rest (f a b))
-                 <|> return a
+oneOf s = satisfy (`elem` s)
 
 char :: Char -> Parser Char
 char c = satisfy (c ==)
@@ -115,9 +108,21 @@ number = do
     cs <- some digit
     return $ read (s ++ cs)
 
-parens :: Parser a -> Parser a
-parens m = do
-    reserved "("
+-- left right
+parens :: String -> String -> Parser a -> Parser a
+parens l r m = do
+    reserved l
     n <- m
-    reserved ")"
+    reserved r
     return n
+
+-- match zero or more occurrences
+star :: Parser a -> Parser [a]
+star p = plus p <|> pure []
+
+-- match one or more occurrences
+plus :: Parser a -> Parser [a]
+plus p = (:) <$> p <*> star p
+
+word :: Parser String
+word = plus $ satisfy (`notElem` "\n\r")

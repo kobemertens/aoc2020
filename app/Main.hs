@@ -12,6 +12,7 @@ import qualified Day10
 import qualified Day11
 import qualified Day12
 import qualified Day13
+import qualified Day14
 
 main :: IO ()
-main = Day13.solve
+main = Day14.solve

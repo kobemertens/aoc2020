@@ -3,7 +3,7 @@ module Day13
     ) where
 
 import Data.List.Split(splitOn)
-import Math.NumberTheory.Euclidean
+import Math.NumberTheory.Euclidean ( extendedGCD )
 
 solve :: IO ()
 solve = do
