@@ -110,7 +110,9 @@ instructionParser :: Parser Instruction
 instructionParser = do
     reserved "mem"
     a <- parens "[" "]" number
-    reserved " = "
+    spaces
+    reserved "="
+    spaces
     b <- number
     spaces
     return (a, b)

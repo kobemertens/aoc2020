@@ -4,9 +4,9 @@
 
 module NanoParsec where
 
-import Data.Char
-import Control.Monad
-import Control.Applicative
+import Data.List.Split(splitOn)
+import Data.Char ( isDigit )
+import Control.Applicative ( Alternative(..) )
 
 newtype Parser a = Parser { parse :: String -> Maybe (a,String) }
 
@@ -14,8 +14,8 @@ runParser :: Parser a -> String -> a
 runParser m s =
     case parse m s of
         Just (res, []) -> res
-        Just (_, rs)   -> error $ "Parser did not consume entire stream." ++ rs
-        Nothing           -> error "Parser error."
+        Just (_, rs)   -> error $ "Parser did not consume entire stream. Remaining: " ++ "\"" ++ rs ++ "\""
+        Nothing        -> error "Parser error."
 
 item :: Parser Char
 item = Parser $ \s ->
@@ -34,9 +34,9 @@ unit a = Parser $ \s -> Just (a, s)
 
 instance Functor Parser where
     -- return new parser that applies the function
-    -- to every item in the original parser
-    fmap f (Parser cs) = Parser $ \s ->
-        case cs s of
+    -- to the item in the original parser
+    fmap f p = Parser $ \s ->
+        case parse p s of
             (Just (a, b)) -> Just (f a, b)
             Nothing -> Nothing
 
@@ -50,9 +50,10 @@ instance Applicative Parser where
                     (Just (a, s2)) -> Just (f a, s2)
                     Nothing -> Nothing
 
-
 instance Monad Parser where
     return = unit
+    -- combines parser functions in a way that the
+    -- remaining string gets passed automatically
     (>>=)  = bind
 
 instance Alternative Parser where
@@ -93,11 +94,12 @@ token p = do
     spaces
     return a
 
+-- also removes spaces after word
 reserved :: String -> Parser String
 reserved s = token (string s)
 
 spaces :: Parser String
-spaces = many $ oneOf "\n\r"
+spaces = many $ oneOf " \n\r"
 
 digit :: Parser Char
 digit = satisfy isDigit
@@ -125,4 +127,10 @@ plus :: Parser a -> Parser [a]
 plus p = (:) <$> p <*> star p
 
 word :: Parser String
-word = plus $ satisfy (`notElem` "\n\r")
+word = plus $ satisfy (`notElem` " \n\r")
+
+split :: String -> Parser a -> Parser [a]
+split t p = do
+    first <- p
+    v <- plus $ string t >> p
+    return $ first:v
