@@ -5,7 +5,7 @@
 module NanoParsec where
 
 import Data.List.Split(splitOn)
-import Data.Char ( isDigit )
+import Data.Char ( isDigit, isAlpha )
 import Control.Applicative ( Alternative(..) )
 
 newtype Parser a = Parser { parse :: String -> Maybe (a,String) }
@@ -132,5 +132,8 @@ word = plus $ satisfy (`notElem` " \n\r")
 split :: String -> Parser a -> Parser [a]
 split t p = do
     first <- p
-    v <- plus $ string t >> p
+    v <- star $ string t >> p
     return $ first:v
+
+alpha :: Parser String
+alpha = plus (satisfy isAlpha)

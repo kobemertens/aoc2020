@@ -40,6 +40,7 @@ library
       Day14
       Day15
       Day16
+      Day21
       NanoParsec
   other-modules:
       Paths_aoc2020

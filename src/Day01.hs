@@ -1,5 +1,6 @@
 module Day01
     ( solve
+    , subsets
     ) where
 
 solve :: IO ()
