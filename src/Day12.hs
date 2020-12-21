@@ -57,18 +57,15 @@ ferryStep' (Ferry x y wx wy) (Forward s) = Ferry (x+s*wx) (y+s*wy) wx wy
 ferryStep' f (RotRight s) = rotateRight f s
 ferryStep' f (RotLeft s) = rotateRight f (360 - s)
 
-
 rotateRight :: Ferry -> Int -> Ferry
 rotateRight f 0 = f
 rotateRight (Ferry x y px py) d = let (nx, ny) = rotateAroundOrigin d (px, py) in Ferry x y nx ny
-
 
 rotateAroundOrigin :: Int -> (Int, Int) -> (Int, Int)
 rotateAroundOrigin 0 c = c
 rotateAroundOrigin 90 (x, y) = (y, -x)
 rotateAroundOrigin 180 (x, y) = (-x, -y)
 rotateAroundOrigin 270 (x, y) = (-y, x)
-
 
 parseLine :: String -> Instruction
 parseLine (x:xs)
