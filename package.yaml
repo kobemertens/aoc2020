@@ -24,6 +24,7 @@ dependencies:
 - split
 - containers
 - arithmoi
+- utility-ht
 
 library:
   source-dirs: src
