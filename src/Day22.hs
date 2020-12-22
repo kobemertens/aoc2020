@@ -5,7 +5,7 @@ module Day22
 import NanoParsec
     ( number, reserved, runParser, spaces, split, Parser)
 import Debug.Trace
-import Data.Set (Set, empty, insert)
+import Data.Set (Set, empty, insert, member)
 
 type Deck = [Int]
 data Game = Game
@@ -34,31 +34,33 @@ countScore :: Deck -> Int
 countScore w = sum $ zipWith (*) [1..(length w)] (reverse w)
 
 getWinner :: Game -> Maybe (Either Deck Deck)
-getWinner ([], w) = Just $ Right w
-getWinner (w, []) = Just $ Left w
-getWinner _ = Nothing
+getWinner (Game ([], w) _) = Just $ Right w
+getWinner (Game (w, []) _) = Just $ Left w
+getWinner (Game ds@(l, _) h)
+    | ds `member` h = Just $ Left l
+    | otherwise = Nothing
 
 runGame :: (Game -> Game) -> Game -> Either Deck Deck
-runGame f h x = case getWinner x of
+runGame f x = case getWinner x of
     (Just x) -> x
-    Nothing -> (runGame f h . f) x
+    Nothing -> (runGame f . f) x
 
 fromEither :: Either a a -> a
 fromEither (Left x) = x
 fromEither (Right x) = x
 
 gameStep :: Game -> Game
-gameStep g@(Game (x:xs, y:ys) h)
-    | x > y     = (Game (xs ++ [x, y], ys) (insert h g))
-    | otherwise = (xs, ys ++ [y, x])
+gameStep (Game ds@(x:xs, y:ys) h)
+    | x > y     = Game (xs ++ [x, y], ys) (insert ds h)
+    | otherwise = Game (xs, ys ++ [y, x]) (insert ds h)
 
 gameStep' :: Game -> Game
-gameStep' g@(Game (x:xs, y:ys) h)
+gameStep' g@(Game ds@(x:xs, y:ys) h)
     | x > length xs || y > length ys = gameStep g
     | otherwise =
-        case runGame gameStep' (Game (xs, ys) h) of
-            (Left _) -> (xs ++ [x, y], ys)
-            (Right _) -> (xs, ys ++ [y, x])
+        case runGame gameStep' (Game (xs, ys) empty) of
+            (Left _) -> Game (xs ++ [x, y], ys) (insert ds h)
+            (Right _) -> Game (xs, ys ++ [y, x]) (insert ds h)
 
 deckParser2 :: Parser Game
 deckParser2 = do
