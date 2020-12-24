@@ -75,6 +75,16 @@ satisfy p = item >>= \c ->
 oneOf :: [Char] -> Parser Char
 oneOf s = satisfy (`elem` s)
 
+-- | Parses one or more occurrences of `p` separated by
+-- op and returns a value obtained by recursing until
+-- failure on the left hand side of the stream
+chainl1 :: Parser a -> Parser (a -> a -> a) -> Parser a
+p `chainl1` op = do {a <- p; rest a}
+  where rest a = (do f <- op
+                     b <- p
+                     rest (f a b))
+                 <|> return a
+
 char :: Char -> Parser Char
 char c = satisfy (c ==)
 
