@@ -1,12 +1,12 @@
 module Day17
     ( solve
+    , neighbourCoords
     ) where
 
 import Data.Map (Map, fromList, empty, union, mapWithKey, findWithDefault, fold)
 
 type Vector = (Int, Int, Int)
 type PocketDimension = Map Vector Bool
-
 
 solve :: IO ()
 solve = do
