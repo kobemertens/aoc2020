@@ -6,7 +6,6 @@ import NanoParsec
 import Control.Applicative ( Alternative((<|>)) )
 import Data.Set(empty, Set, insert, delete, member, fromList, intersection, union)
 import Data.Functor ( ($>) )
-import Day17 (neighbourCoords)
 
 data Direction
     = East
@@ -28,42 +27,37 @@ solve = do
     let w = foldl addPathToFlip empty ps
     print $ length w
     putStr "Part2: "
-    print $ length $ nSimulationSteps w 1
+    print $ length $ nSimulationSteps w 100
 
 nSimulationSteps :: Set HexCoord -> Int -> Set HexCoord
-nSimulationSteps cs 0 = cs
-nSimulationSteps cs n = nSimulationSteps (simulationStep cs) (n-1)
+nSimulationSteps cs n = iterate simulationStep cs !! n
 
 simulationStep :: Set HexCoord -> Set HexCoord
-simulationStep s = foldl (processTile s) s s
+simulationStep s = foldl (processTile s) empty s
 
 -- base acc c newacc
 processTile :: Set HexCoord -> Set HexCoord -> HexCoord -> Set HexCoord
-processTile b acc c = listUnion $ map (processTile' b acc) (c:neighbourCoords c)
+processTile b acc c = acc `union` fromList (filter (shouldBeBlack b) (c:neighbourCoords c))
 
-listUnion :: (Ord a) => [Set a] -> Set a
-listUnion = foldl union empty
-
-processTile' :: Set HexCoord -> Set HexCoord -> HexCoord -> Set HexCoord
-processTile' b acc c
-    | shouldFlip b c = flipTile acc c
-    | otherwise = acc
-
+shouldBeBlack :: Set HexCoord -> HexCoord -> Bool
+shouldBeBlack s c = let nnbs = countBlackNeighbours s c
+                 in if c `member` s
+                    then nnbs == 1 || nnbs == 2
+                    else nnbs == 2
 
 flipTile :: Set HexCoord -> HexCoord -> Set HexCoord
 flipTile s c = if c `member` s
                then delete c s
                else insert c s
 
-shouldFlip :: Set HexCoord -> HexCoord -> Bool
-shouldFlip s c = let nnbs = countBlackNeighbours s c
-                 in if c `member` s
-                    then nnbs == 0 || nnbs > 2
-                    else nnbs == 2
-
 countBlackNeighbours :: Set HexCoord -> HexCoord -> Int
 countBlackNeighbours s c = let nbcs = fromList $ neighbourCoords c
                            in  length $ intersection nbcs s
+
+neighbourCoords :: HexCoord -> [HexCoord]
+neighbourCoords c = map (takeStep c) dirs
+  where
+    dirs = [East, Southeast, Southwest, West, Northwest, Northeast]
 
 addPathToFlip :: Set HexCoord -> Path -> Set HexCoord
 addPathToFlip s p = let c = coordFromPath p
