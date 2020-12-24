@@ -58,7 +58,7 @@ gameStep' :: Game -> Game
 gameStep' g@(Game ds@(x:xs, y:ys) h)
     | x > length xs || y > length ys = gameStep g
     | otherwise =
-        case runGame gameStep' (Game (xs, ys) empty) of
+        case runGame gameStep' (Game (take x xs, take y ys) empty) of
             (Left _) -> Game (xs ++ [x, y], ys) (insert ds h)
             (Right _) -> Game (xs, ys ++ [y, x]) (insert ds h)
 
