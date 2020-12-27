@@ -17,6 +17,14 @@ runParser m s =
         Just (_, rs)   -> error $ "Parser did not consume entire stream. Remaining: " ++ "\"" ++ rs ++ "\""
         Nothing        -> error "Parser error."
 
+succeeds :: Parser a -> String -> Bool
+succeeds m s =
+    case parse m s of
+        Just (res, []) -> True
+        Just (_, rs)   -> False
+        Nothing        -> False
+
+
 item :: Parser Char
 item = Parser $ \s ->
     case s of
