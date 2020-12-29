@@ -2,10 +2,11 @@ module Day19
     ( solve
     ) where
 
-import NanoParsec
+import NanoParsecList
 import Data.Map ( Map, fromList, (!) )
-import Control.Applicative ( Alternative((<|>)) )
-import Control.Monad (void)
+import Control.Applicative ( Alternative((<|>), some) )
+import Control.Monad (void, MonadPlus(..))
+import Debug.Trace
 
 type ParserStore = Map Int StoreEntry
 newtype StoreEntry = StoreEntry { getEntry :: ParserStore -> Parser () }
@@ -16,7 +17,8 @@ solve = do
     let (store, words) = runParser fileParser f
     let first = store!0
     print "Parser was parsed"
-    print $ length $ filter id $ map (succeeds (getEntry first store)) words
+    print $ length $ filter (succeeds (getEntry first store)) words
+    -- print $ succeeds (getEntry first store) "aaaaabbaabaaaaababaa"
 
 fileParser :: Parser (ParserStore, [String])
 fileParser = do
@@ -27,11 +29,11 @@ fileParser = do
     return (st, ts)
 
 testStringParser :: Parser [String]
-testStringParser = plus $ alpha <* spaces
+testStringParser = some $ alpha <* spaces
 
 parserStoreParser :: Parser ParserStore
 parserStoreParser = do
-    ns <- plus storeEntryParser
+    ns <- some storeEntryParser
     return $ fromList ns
 
 storeEntryParser :: Parser (Int, StoreEntry)
@@ -64,4 +66,4 @@ sequenceParser = do
 -- returns succeeding parser
 anyOf :: [StoreEntry] -> StoreEntry
 anyOf l = StoreEntry $ \m ->
-    foldl1 (<|>) (map (`getEntry` m) l)
+    foldl1 mplus (map (`getEntry` m) l)

@@ -48,6 +48,7 @@ library
       Day22
       Day24
       NanoParsec
+      NanoParsecList
   other-modules:
       Paths_aoc2020
   hs-source-dirs:
