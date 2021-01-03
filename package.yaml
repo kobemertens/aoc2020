@@ -25,6 +25,7 @@ dependencies:
 - containers
 - arithmoi
 - utility-ht
+- vector
 
 library:
   source-dirs: src
