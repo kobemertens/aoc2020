@@ -16,9 +16,8 @@ solve = do
     f <- readFile "data/day19.txt"
     let (store, words) = runParser fileParser f
     let first = store!0
-    print "Parser was parsed"
+    putStrLn "Part2: "
     print $ length $ filter (succeeds (getEntry first store)) words
-    -- print $ succeeds (getEntry first store) "aaaaabbaabaaaaababaa"
 
 fileParser :: Parser (ParserStore, [String])
 fileParser = do
